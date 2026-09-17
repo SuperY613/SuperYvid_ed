@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SuperYvid_ed</title>
+    <meta
+      name="description"
+      content="SuperYvid_ed — a futuristic video editor interface prototype"
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./src/styles.css" />
+  </head>
+  <body>
+    <div class="bg-grid"></div>
+
+    <div class="app-shell">
+      <header class="topbar panel">
+        <div class="brand-group">
+          <div class="brand-mark">S</div>
+          <div>
+            <p class="eyebrow">Creative Suite</p>
+            <h1>SuperYvid_ed</h1>
+          </div>
+        </div>
+
+        <div class="topbar-center">
+          <div class="project-pill active">Project: Neon Pulse</div>
+          <div class="project-pill">4K • 24fps • Rec.709</div>
+        </div>
+
+        <div class="topbar-actions">
+          <button class="ghost-button">Share</button>
+          <button class="primary-button">Export</button>
+        </div>
+      </header>
+
+      <div class="workspace">
+        <aside class="sidebar panel left-sidebar">
+          <div class="sidebar-section">
+            <p class="section-label">Library</p>
+            <div class="library-tools">
+              <button class="chip active">Media</button>
+              <button class="chip">Transitions</button>
+              <button class="chip">Audio</button>
+            </div>
+          </div>
+
+          <div class="asset-list" id="assetList"></div>
+        </aside>
+
+        <main class="studio panel">
+          <div class="studio-header">
+            <div class="playback-meta">
+              <span class="dot live"></span>
+              <span>Live preview</span>
+            </div>
+
+            <div class="transport-controls">
+              <button class="icon-button">⏮</button>
+              <button class="icon-button primary">▶</button>
+              <button class="icon-button">⏭</button>
+            </div>
+          </div>
+
+          <div class="preview-area">
+            <div class="preview-stage">
+              <div class="focus-ring"></div>
+              <div class="preview-overlay">
+                <div>
+                  <p class="eyebrow tiny">Sequence 08</p>
+                  <h2>Midnight Signal</h2>
+                </div>
+                <div class="time-badge">00:02:14</div>
+              </div>
+              <div class="preview-vignette"></div>
+            </div>
+          </div>
+
+          <div class="timeline-panel">
+            <div class="timeline-header">
+              <p class="section-label">Timeline</p>
+              <div class="timeline-actions">
+                <button class="chip">Cut</button>
+                <button class="chip">Trim</button>
+                <button class="chip">Effect</button>
+              </div>
+            </div>
+
+            <div class="timeline-ruler">
+              <span>00:00</span>
+              <span>00:05</span>
+              <span>00:10</span>
+              <span>00:15</span>
+              <span>00:20</span>
+              <span>00:25</span>
+              <span>00:30</span>
+            </div>
+
+            <div class="timeline-track" id="timelineTrack"></div>
+          </div>
+        </main>
+
+        <aside class="sidebar panel right-sidebar">
+          <div class="sidebar-section compact">
+            <p class="section-label">Inspector</p>
+            <div class="inspector-card">
+              <div class="clip-thumb" id="inspectorThumb"></div>
+              <div>
+                <p class="eyebrow tiny">Selected</p>
+                <h3 id="selectedTitle">Opening Frame</h3>
+              </div>
+            </div>
+          </div>
+
+          <div class="control-group">
+            <label>
+              Scale
+              <input type="range" min="0" max="100" value="82" />
+            </label>
+            <label>
+              Exposure
+              <input type="range" min="0" max="100" value="64" />
+            </label>
+            <label>
+              Saturation
+              <input type="range" min="0" max="100" value="72" />
+            </label>
+          </div>
+
+          <div class="effects-panel">
+            <p class="section-label">AI Effects</p>
+            <div class="effect-grid">
+              <button class="effect-pill active">Neon</button>
+              <button class="effect-pill">Cinematic</button>
+              <button class="effect-pill">Slow Mo</button>
+              <button class="effect-pill">HDR</button>
+              <button class="effect-pill">Smooth</button>
+              <button class="effect-pill">Frame</button>
+            </div>
+          </div>
+
+          <div class="export-box">
+            <p class="section-label">Export</p>
+            <div class="export-stats">
+              <div>
+                <span>Resolution</span>
+                <strong>4K UHD</strong>
+              </div>
+              <div>
+                <span>Render</span>
+                <strong>H.264</strong>
+              </div>
+            </div>
+            <button class="primary-button full">Render Preview</button>
+          </div>
+        </aside>
+      </div>
+    </div>
+
+    <script type="module" src="./src/main.js"></script>
+  </body>
+</html>
