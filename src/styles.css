@@ -1,191 +1,246 @@
-<!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>SuperYvid_ed</title>
-    <meta name="description" content="SuperYvid_ed — futuristic video editor prototype" />
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="./src/styles.css" />
-  </head>
-  <body>
-    <div class="holo-backdrop" aria-hidden="true">
-      <span class="orb orb-1"></span>
-      <span class="orb orb-2"></span>
-      <span class="orb orb-3"></span>
-    </div>
-    <div class="bg-grid"></div>
-    <div class="scanlines"></div>
+const assets = [
+  {
+    title: 'Opening Frame',
+    type: 'Video',
+    duration: '00:12',
+    accent: 'linear-gradient(135deg, #31d9ff, #5468ff)',
+    selected: true,
+  },
+  {
+    title: 'Neon Crowd',
+    type: 'Drone',
+    duration: '00:08',
+    accent: 'linear-gradient(135deg, #9b5cff, #ff4fd8)',
+    selected: false,
+  },
+  {
+    title: 'City Lights',
+    type: 'B-roll',
+    duration: '00:15',
+    accent: 'linear-gradient(135deg, #ffc857, #ff5f9e)',
+    selected: false,
+  },
+  {
+    title: 'Ambient Audio',
+    type: 'Audio',
+    duration: '00:30',
+    accent: 'linear-gradient(135deg, #55f5b2, #31d9ff)',
+    selected: false,
+  },
+];
 
-    <div class="app-shell">
-      <header class="topbar panel">
-        <div class="brand-group">
-          <div class="brand-mark">S</div>
-          <div>
-            <p class="eyebrow">Creative Suite</p>
-            <h1>SuperYvid_ed</h1>
-          </div>
-        </div>
+const clips = [
+  { title: 'Opening Frame', duration: '00:12', layer: 'V1' },
+  { title: 'City Lights', duration: '00:15', layer: 'V1' },
+  { title: 'Neon Crowd', duration: '00:08', layer: 'V2' },
+  { title: 'Ambient Audio', duration: '00:30', layer: 'A1' },
+];
 
-        <div class="topbar-center">
-          <div class="project-pill active">Project: Neon Pulse</div>
-          <div class="project-pill">4K • 24fps • Rec.709</div>
-        </div>
+const assetList = document.querySelector('#assetList');
+const timelineTrack = document.querySelector('#timelineTrack');
+const selectedTitle = document.querySelector('#selectedTitle');
+const inspectorThumb = document.querySelector('#inspectorThumb');
+const previewTitle = document.querySelector('.preview-overlay h2');
+const previewTime = document.querySelector('.time-badge');
+const playButton = document.querySelector('.icon-button.primary');
+const exportButtons = document.querySelectorAll('.primary-button');
+const progressFill = document.querySelector('#progressFill');
+const progressPercent = document.querySelector('#progressPercent');
+const previewVideo = document.querySelector('#previewVideo');
+const mediaUpload = document.querySelector('#mediaUpload');
 
-        <div class="topbar-actions">
-          <button class="ghost-button" type="button">Share</button>
-          <button class="primary-button" type="button">Export</button>
-        </div>
-      </header>
+let activeTitle = 'Opening Frame';
+let isPlaying = false;
+let elapsed = 134;
 
-      <div class="workspace">
-        <aside class="sidebar panel left-sidebar">
-          <div class="sidebar-section">
-            <p class="section-label">Library</p>
-            <div class="library-tools">
-              <button class="chip active" type="button">Media</button>
-              <button class="chip" type="button">Transitions</button>
-              <button class="chip" type="button">Audio</button>
-            </div>
-          </div>
+const paletteFor = (title) =>
+  assets.find((asset) => asset.title === title)?.accent ||
+  'linear-gradient(135deg, #31d9ff, #9b5cff)';
 
-          <div class="upload-box">
-            <label class="upload-btn" for="mediaUpload">+ Add Media</label>
-            <input id="mediaUpload" type="file" accept="video/*,audio/*,image/*" multiple />
-          </div>
+function selectClip(title) {
+  activeTitle = title;
+  const asset = assets.find((item) => item.title === title);
 
-          <div class="asset-list" id="assetList"></div>
-        </aside>
+  selectedTitle.textContent = title;
+  inspectorThumb.style.background = paletteFor(title);
+  previewTitle.textContent = title === 'Opening Frame' ? 'Midnight Signal' : title;
 
-        <main class="studio panel">
-          <div class="studio-header">
-            <div class="playback-meta">
-              <span class="dot live"></span>
-              <span>Live preview</span>
-            </div>
+  renderAssets();
+  renderTimeline();
 
-            <div class="transport-controls">
-              <button class="icon-button" type="button">⏮</button>
-              <button class="icon-button primary" type="button" aria-label="Play preview">▶</button>
-              <button class="icon-button" type="button">⏭</button>
-            </div>
-          </div>
+  if (asset && previewVideo && asset.type !== 'Audio') {
+    const imageMap = {
+      'Opening Frame': 'https://images.unsplash.com/photo-1493246507139-91e8fad9978e?auto=format&fit=crop&w=1200&q=80',
+      'Neon Crowd': 'https://images.unsplash.com/photo-1514565131-fce0801e5785?auto=format&fit=crop&w=1200&q=80',
+      'City Lights': 'https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=1200&q=80',
+    };
 
-          <div class="preview-area">
-            <div class="preview-stage">
-              <div class="screen-glow"></div>
-              <div class="data-grid"></div>
-              <div class="focus-ring"></div>
-              <video id="previewVideo" muted playsinline></video>
-              <div class="preview-overlay">
-                <div>
-                  <p class="eyebrow tiny">Sequence 08</p>
-                  <h2>Midnight Signal</h2>
-                </div>
-                <div class="time-badge">00:02:14</div>
-              </div>
-              <div class="preview-vignette"></div>
-            </div>
-          </div>
+    const src = imageMap[title] || imageMap['Opening Frame'];
+    previewVideo.src = src;
+    previewVideo.classList.add('has-source');
+    previewVideo.play().catch(() => {});
+  }
+}
 
-          <div class="timeline-panel">
-            <div class="timeline-header">
-              <p class="section-label">Timeline</p>
-              <div class="timeline-actions">
-                <button class="chip" type="button">Cut</button>
-                <button class="chip" type="button">Trim</button>
-                <button class="chip" type="button">Effect</button>
-              </div>
-            </div>
+function renderAssets() {
+  assetList.innerHTML = '';
 
-            <div class="timeline-ruler">
-              <span>00:00</span>
-              <span>00:05</span>
-              <span>00:10</span>
-              <span>00:15</span>
-              <span>00:20</span>
-              <span>00:25</span>
-              <span>00:30</span>
-            </div>
-
-            <div class="playhead-wrap">
-              <div class="playhead"></div>
-            </div>
-
-            <div class="timeline-track" id="timelineTrack"></div>
-          </div>
-        </main>
-
-        <aside class="sidebar panel right-sidebar">
-          <div class="sidebar-section compact">
-            <p class="section-label">Inspector</p>
-            <div class="inspector-card">
-              <div class="clip-thumb" id="inspectorThumb"></div>
-              <div>
-                <p class="eyebrow tiny">Selected</p>
-                <h3 id="selectedTitle">Opening Frame</h3>
-              </div>
-            </div>
-          </div>
-
-          <div class="control-group">
-            <label>
-              Scale
-              <input type="range" min="0" max="100" value="82" />
-            </label>
-            <label>
-              Exposure
-              <input type="range" min="0" max="100" value="64" />
-            </label>
-            <label>
-              Saturation
-              <input type="range" min="0" max="100" value="72" />
-            </label>
-          </div>
-
-          <div class="effects-panel">
-            <p class="section-label">AI Effects</p>
-            <div class="effect-grid">
-              <button class="effect-pill active" type="button">Neon</button>
-              <button class="effect-pill" type="button">Cinematic</button>
-              <button class="effect-pill" type="button">Slow Mo</button>
-              <button class="effect-pill" type="button">HDR</button>
-              <button class="effect-pill" type="button">Smooth</button>
-              <button class="effect-pill" type="button">Frame</button>
-            </div>
-          </div>
-
-          <div class="export-box">
-            <p class="section-label">Export</p>
-            <div class="export-stats">
-              <div>
-                <span>Resolution</span>
-                <strong>4K UHD</strong>
-              </div>
-              <div>
-                <span>Render</span>
-                <strong>H.264</strong>
-              </div>
-            </div>
-
-            <div class="progress-wrap">
-              <div class="progress-label-row">
-                <span>Render progress</span>
-                <strong id="progressPercent">0%</strong>
-              </div>
-              <div class="progress-bar">
-                <div id="progressFill"></div>
-              </div>
-            </div>
-
-            <button class="primary-button full" type="button">Render Preview</button>
-          </div>
-        </aside>
+  assets.forEach((asset) => {
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = `asset-card ${asset.title === activeTitle ? 'selected' : ''}`;
+    button.innerHTML = `
+      <div class="asset-thumb" style="background:${asset.accent}"></div>
+      <div class="asset-meta">
+        <h3>${asset.title}</h3>
+        <p>${asset.type}</p>
+        <p>${asset.duration}</p>
       </div>
-    </div>
+    `;
+    button.addEventListener('click', () => selectClip(asset.title));
+    assetList.appendChild(button);
+  });
+}
 
-    <script type="module" src="./src/main.js"></script>
-  </body>
-</html>
+function renderTimeline() {
+  timelineTrack.innerHTML = '';
+
+  clips.forEach((clip, index) => {
+    const node = document.createElement('button');
+    node.type = 'button';
+    node.className = `timeline-clip ${clip.title === activeTitle ? 'selected' : ''}`;
+    node.style.background = `linear-gradient(135deg, ${index % 2 ? 'rgba(160,120,255,.2)' : 'rgba(104,227,255,.2)'}, rgba(255,127,227,.12))`;
+    node.innerHTML = `
+      <div class="clip-header">
+        <strong>${clip.title}</strong>
+        <span class="clip-duration">${clip.duration}</span>
+      </div>
+      <div class="clip-wave"><span></span></div>
+      <div class="clip-footer">
+        <span>${clip.layer}</span>
+        <span>${index === 3 ? 'WAVE' : 'AI READY'}</span>
+      </div>
+    `;
+
+    node.addEventListener('dragstart', (event) => {
+      event.dataTransfer.setData('text/plain', clip.title);
+      node.classList.add('dragging');
+    });
+
+    node.addEventListener('dragend', () => node.classList.remove('dragging'));
+    node.addEventListener('dragover', (event) => event.preventDefault());
+    node.addEventListener('drop', (event) => {
+      event.preventDefault();
+      const droppedTitle = event.dataTransfer.getData('text/plain');
+      const draggedClip = clips.find((item) => item.title === droppedTitle);
+      const targetClip = clips.find((item) => item.title === clip.title);
+
+      if (!draggedClip || !targetClip || draggedClip.title === targetClip.title) {
+        return;
+      }
+
+      const draggedIndex = clips.indexOf(draggedClip);
+      const targetIndex = clips.indexOf(targetClip);
+      clips.splice(draggedIndex, 1);
+      clips.splice(targetIndex, 0, draggedClip);
+      renderTimeline();
+    });
+
+    node.addEventListener('click', () => selectClip(clip.title));
+    timelineTrack.appendChild(node);
+  });
+}
+
+function formatTime(totalSeconds) {
+  const minutes = Math.floor(totalSeconds / 60).toString().padStart(2, '0');
+  const seconds = Math.floor(totalSeconds % 60).toString().padStart(2, '0');
+  return `00:${minutes}:${seconds}`;
+}
+
+playButton?.addEventListener('click', () => {
+  isPlaying = !isPlaying;
+  playButton.textContent = isPlaying ? 'Ⅱ' : '▶';
+  playButton.setAttribute('aria-label', isPlaying ? 'Pause preview' : 'Play preview');
+
+  if (previewVideo && previewVideo.src && isPlaying) {
+    previewVideo.play().catch(() => {});
+  }
+
+  if (previewVideo && !isPlaying && !previewVideo.paused) {
+    previewVideo.pause();
+  }
+});
+
+document.querySelectorAll('.effect-pill').forEach((button) => {
+  button.addEventListener('click', () => {
+    document.querySelectorAll('.effect-pill').forEach((item) => item.classList.remove('active'));
+    button.classList.add('active');
+  });
+});
+
+document.querySelectorAll('.library-tools .chip, .timeline-actions .chip').forEach((button) => {
+  button.addEventListener('click', () => {
+    const group = button.parentElement;
+    group.querySelectorAll('.chip').forEach((item) => item.classList.remove('active'));
+    button.classList.add('active');
+  });
+});
+
+exportButtons.forEach((button) => {
+  button.addEventListener('click', () => {
+    const originalText = button.textContent;
+    button.textContent = 'Rendering…';
+    button.disabled = true;
+
+    let progress = 0;
+    const intervalId = window.setInterval(() => {
+      progress += 12;
+      const next = Math.min(progress, 100);
+      progressFill.style.width = `${next}%`;
+      progressPercent.textContent = `${next}%`;
+
+      if (next >= 100) {
+        window.clearInterval(intervalId);
+        button.textContent = originalText === 'Export' ? 'Export Ready' : 'Preview Ready';
+        button.disabled = false;
+      }
+    }, 180);
+  });
+});
+
+mediaUpload?.addEventListener('change', (event) => {
+  const files = [...(event.target.files || [])];
+
+  files.forEach((file) => {
+    const mediaType = file.type.startsWith('video')
+      ? 'Video'
+      : file.type.startsWith('audio')
+        ? 'Audio'
+        : 'Image';
+
+    assets.unshift({
+      title: file.name.replace(/\.[^/.]+$/, ''),
+      type: mediaType,
+      duration: '00:10',
+      accent: 'linear-gradient(135deg, #31d9ff, #9b5cff)',
+      selected: false,
+    });
+
+    if (mediaType !== 'Audio' && previewVideo) {
+      previewVideo.src = URL.createObjectURL(file);
+      previewVideo.classList.add('has-source');
+      previewVideo.play().catch(() => {});
+    }
+  });
+
+  renderAssets();
+  selectClip(assets[0]?.title || activeTitle);
+});
+
+window.setInterval(() => {
+  if (!isPlaying) return;
+  elapsed = (elapsed + 1) % 3600;
+  previewTime.textContent = formatTime(elapsed);
+}, 1000);
+
+selectClip(activeTitle);

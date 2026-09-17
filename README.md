@@ -1,197 +1,28 @@
-const assets = [
-  { title: 'Opening Frame', type: 'Video', duration: '00:12', accent: 'linear-gradient(135deg, #31d9ff, #5468ff)', selected: true },
-  { title: 'Neon Crowd', type: 'Drone', duration: '00:08', accent: 'linear-gradient(135deg, #9b5cff, #ff4fd8)', selected: false },
-  { title: 'City Lights', type: 'B-roll', duration: '00:15', accent: 'linear-gradient(135deg, #ffc857, #ff5f9e)', selected: false },
-  { title: 'Ambient Audio', type: 'Audio', duration: '00:30', accent: 'linear-gradient(135deg, #55f5b2, #31d9ff)', selected: false },
-];
+# SuperYvid_ed
 
-const clips = [
-  { title: 'Opening Frame', duration: '00:12', layer: 'V1' },
-  { title: 'City Lights', duration: '00:15', layer: 'V1' },
-  { title: 'Neon Crowd', duration: '00:08', layer: 'V2' },
-  { title: 'Ambient Audio', duration: '00:30', layer: 'A1' },
-];
+SuperYvid_ed is a futuristic video editor interface prototype built as a single-page web app. It is designed to feel like a cinematic creative suite with a neon cyberpunk aesthetic, live preview panel, asset library, inspector controls, and a stylized timeline.
 
-const assetList = document.querySelector('#assetList');
-const timelineTrack = document.querySelector('#timelineTrack');
-const selectedTitle = document.querySelector('#selectedTitle');
-const inspectorThumb = document.querySelector('#inspectorThumb');
-const previewTitle = document.querySelector('.preview-overlay h2');
-const previewTime = document.querySelector('.time-badge');
-const playButton = document.querySelector('.icon-button.primary');
-const exportButtons = document.querySelectorAll('.primary-button');
-const progressFill = document.querySelector('#progressFill');
-const progressPercent = document.querySelector('#progressPercent');
-const previewVideo = document.querySelector('#previewVideo');
-const mediaUpload = document.querySelector('#mediaUpload');
+## What it includes
+- Futuristic editor dashboard layout
+- Media library with selectable assets
+- Live preview panel with timing display
+- Timeline cards with drag-and-drop reordering
+- Inspector controls for scale, exposure, and saturation
+- AI-effect presets and export simulation
+- Upload support for local media files
+- Responsive layout for smaller screens
 
-let activeTitle = 'Opening Frame';
-let isPlaying = false;
-let elapsed = 134;
-let renderProgress = 0;
+## How to run
+1. Install dependencies:
+   npm install
+2. Start the app:
+   npm run dev
+3. Open the local URL shown by Vite in your browser.
 
-const paletteFor = (title) => assets.find((asset) => asset.title === title)?.accent || 'linear-gradient(135deg, #31d9ff, #9b5cff)';
+## Project structure
+- index.html — app shell and layout
+- src/main.js — interactivity and data logic
+- src/styles.css — visual design and layout styling
 
-function selectClip(title) {
-  activeTitle = title;
-  const asset = assets.find((item) => item.title === title);
-  selectedTitle.textContent = title;
-  inspectorThumb.style.background = paletteFor(title);
-  previewTitle.textContent = title === 'Opening Frame' ? 'Midnight Signal' : title;
-  renderAssets();
-  renderTimeline();
-
-  if (asset && previewVideo) {
-    const source = asset.type === 'Audio' ? '' : `https://images.unsplash.com/${asset.title === 'City Lights' ? 'photo-1514565131-fce0801e5785' : 'photo-1493246507139-91e8fad9978e'}?auto=format&fit=crop&w=1200&q=80`;
-    if (source) {
-      previewVideo.src = source;
-      previewVideo.classList.add('has-source');
-      previewVideo.play().catch(() => {});
-    }
-  }
-}
-
-function renderAssets() {
-  assetList.innerHTML = '';
-  assets.forEach((asset) => {
-    const button = document.createElement('button');
-    button.type = 'button';
-    button.className = `asset-card ${asset.title === activeTitle ? 'selected' : ''}`;
-    button.innerHTML = `
-      <div class="asset-thumb" style="background:${asset.accent}"></div>
-      <div class="asset-meta">
-        <h3>${asset.title}</h3>
-        <p>${asset.type}</p>
-        <p>${asset.duration}</p>
-      </div>
-    `;
-    button.addEventListener('click', () => selectClip(asset.title));
-    assetList.appendChild(button);
-  });
-}
-
-function renderTimeline() {
-  timelineTrack.innerHTML = '';
-  clips.forEach((clip, index) => {
-    const node = document.createElement('button');
-    node.type = 'button';
-    node.className = `timeline-clip ${clip.title === activeTitle ? 'selected' : ''}`;
-    node.style.background = `linear-gradient(135deg, ${index % 2 ? 'rgba(160,120,255,.2)' : 'rgba(104,227,255,.2)'}, rgba(255,127,227,.12))`;
-    node.innerHTML = `
-      <div class="clip-header"><strong>${clip.title}</strong><span class="clip-duration">${clip.duration}</span></div>
-      <div class="clip-wave"><span></span></div>
-      <div class="clip-footer"><span>${clip.layer}</span><span>${index === 3 ? 'WAVE' : 'AI READY'}</span></div>
-    `;
-
-    node.addEventListener('dragstart', (event) => {
-      event.dataTransfer.setData('text/plain', clip.title);
-      node.classList.add('dragging');
-    });
-
-    node.addEventListener('dragend', () => node.classList.remove('dragging'));
-    node.addEventListener('dragover', (event) => event.preventDefault());
-    node.addEventListener('drop', (event) => {
-      event.preventDefault();
-      const droppedTitle = event.dataTransfer.getData('text/plain');
-      const draggedClip = clips.find((item) => item.title === droppedTitle);
-      const targetClip = clips.find((item) => item.title === clip.title);
-      if (!draggedClip || !targetClip || draggedClip.title === targetClip.title) return;
-      const draggedIndex = clips.indexOf(draggedClip);
-      const targetIndex = clips.indexOf(targetClip);
-      clips.splice(draggedIndex, 1);
-      clips.splice(targetIndex, 0, draggedClip);
-      renderTimeline();
-    });
-
-    node.addEventListener('click', () => selectClip(clip.title));
-    timelineTrack.appendChild(node);
-  });
-}
-
-function formatTime(totalSeconds) {
-  const hours = Math.floor(totalSeconds / 3600).toString().padStart(2, '0');
-  const minutes = Math.floor((totalSeconds % 3600) / 60).toString().padStart(2, '0');
-  const seconds = Math.floor(totalSeconds % 60).toString().padStart(2, '0');
-  return `${hours}:${minutes}:${seconds}`;
-}
-
-playButton?.addEventListener('click', () => {
-  isPlaying = !isPlaying;
-  playButton.textContent = isPlaying ? 'Ⅱ' : '▶';
-  playButton.setAttribute('aria-label', isPlaying ? 'Pause preview' : 'Play preview');
-
-  if (previewVideo && !previewVideo.paused && !isPlaying) {
-    previewVideo.pause();
-  }
-
-  if (previewVideo && previewVideo.src && isPlaying) {
-    previewVideo.play().catch(() => {});
-  }
-});
-
-document.querySelectorAll('.effect-pill').forEach((button) => {
-  button.addEventListener('click', () => {
-    document.querySelectorAll('.effect-pill').forEach((item) => item.classList.remove('active'));
-    button.classList.add('active');
-  });
-});
-
-document.querySelectorAll('.library-tools .chip, .timeline-actions .chip').forEach((button) => {
-  button.addEventListener('click', () => {
-    const group = button.parentElement;
-    group.querySelectorAll('.chip').forEach((item) => item.classList.remove('active'));
-    button.classList.add('active');
-  });
-});
-
-exportButtons.forEach((button) => {
-  button.addEventListener('click', () => {
-    const original = button.textContent;
-    button.textContent = 'Rendering…';
-    button.disabled = true;
-    let progress = 0;
-    const interval = setInterval(() => {
-      progress += 12;
-      renderProgress = Math.min(progress, 100);
-      progressFill.style.width = `${renderProgress}%`;
-      progressPercent.textContent = `${renderProgress}%`;
-      if (renderProgress >= 100) {
-        clearInterval(interval);
-        button.textContent = original === 'Export' ? 'Export Ready' : 'Preview Ready';
-        button.disabled = false;
-      }
-    }, 180);
-  });
-});
-
-window.setInterval(() => {
-  if (!isPlaying) return;
-  elapsed = (elapsed + 1) % 3600;
-  previewTime.textContent = formatTime(elapsed);
-}, 1000);
-
-mediaUpload?.addEventListener('change', (event) => {
-  const files = [...event.target.files || []];
-  files.forEach((file) => {
-    const url = URL.createObjectURL(file);
-    const match = file.type.startsWith('video') ? 'Video' : file.type.startsWith('audio') ? 'Audio' : 'Image';
-    assets.unshift({
-      title: file.name.replace(/\.[^/.]+$/, ''),
-      type: match,
-      duration: '00:10',
-      accent: 'linear-gradient(135deg, #31d9ff, #9b5cff)',
-      selected: false,
-    });
-
-    if (match === 'Video' && previewVideo) {
-      previewVideo.src = url;
-      previewVideo.classList.add('has-source');
-      previewVideo.play().catch(() => {});
-    }
-  });
-
-  renderAssets();
-  selectClip(assets[0]?.title || activeTitle);
-});
-
-selectClip(activeTitle);
+## Notes
+This project is meant as a front-end prototype and mock editor experience rather than a full production video editor.
