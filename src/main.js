@@ -568,6 +568,25 @@ input {
   padding: 0 6px 8px;
 }
 
+.playhead-wrap {
+  position: relative;
+  margin: 0 0 14px;
+  height: 8px;
+  border-radius: 999px;
+  background: rgba(255,255,255,0.04);
+}
+
+.playhead {
+  position: absolute;
+  left: 52%;
+  top: -2px;
+  width: 3px;
+  height: 12px;
+  border-radius: 99px;
+  background: linear-gradient(180deg, var(--cyan), var(--pink));
+  box-shadow: 0 0 20px rgba(104,227,255,0.6);
+}
+
 .timeline-track {
   display: grid;
   grid-template-columns: repeat(4, minmax(180px, 1fr));

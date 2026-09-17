@@ -110,6 +110,10 @@
               <span>00:30</span>
             </div>
 
+            <div class="playhead-wrap">
+              <div class="playhead"></div>
+            </div>
+
             <div class="timeline-track" id="timelineTrack"></div>
           </div>
         </main>
